@@ -76,13 +76,7 @@ cp .env.local.example .env.local
 
 Required variables:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://yosrbbwsbgnxrwmbdttn.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-GROQ_API_KEY=gsk_...
-GROQ_MODEL=openai/gpt-oss-120b
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
+
 
 ### 3. Database Setup
 
