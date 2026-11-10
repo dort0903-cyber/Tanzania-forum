@@ -121,10 +121,7 @@ export default async function ThreadPage({ params }: PageProps) {
               <MessageSquare className="w-3.5 h-3.5" />
               {thread.reply_count} replies
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5" />
-              {thread.view_count} views
-            </span>
+            
           </div>
 
           <ThreadActions threadId={thread.id} title={thread.title} slug={thread.slug} />
