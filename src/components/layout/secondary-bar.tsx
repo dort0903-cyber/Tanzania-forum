@@ -3,9 +3,11 @@
 import { Plus, Activity } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/lib/language-context";
 
 export function SecondaryBar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const supabase = createClient();
@@ -35,15 +37,19 @@ export function SecondaryBar() {
           <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 min-w-0 overflow-hidden">
             <Activity className="w-4 h-4 shrink-0 text-brand-600" />
             <span className="truncate">
-              Latest: New discussions in Siasa · Tech & Gadgets · TzCheck
+              {t(
+                "Latest: Discussions in Siasa · Tech & Gadgets · TzCheck",
+                "Hivi karibuni: Midahalo katika Siasa · Tech & Gadgets · TzCheck"
+              )}
             </span>
           </div>
           <button
+            type="button"
             onClick={handleStartDiscussion}
             className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            Start a discussion
+            {t("Start a discussion", "Anzisha mjadala")}
           </button>
         </div>
       </div>

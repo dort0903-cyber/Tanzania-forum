@@ -1,14 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ThreadCard } from "@/components/forum/thread-card";
-import { BadgeCheck, Calendar, MessageSquare } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { BadgeCheck, Calendar, MessageSquare, Flame } from "lucide-react";
 
-interface PageProps {
+export default async function ProfilePage({
+  params,
+}: {
   params: Promise<{ handle: string }>;
-}
-
-export default async function ProfilePage({ params }: PageProps) {
+}) {
   const { handle } = await params;
   const supabase = await createClient();
 
@@ -25,7 +26,7 @@ export default async function ProfilePage({ params }: PageProps) {
     .select(
       `
       *,
-      category:categories(*),
+      category:categories(id, slug, name_en, name_sw, color),
       author:profiles(id, handle, display_name, avatar_url, is_verified, role)
     `
     )
@@ -36,37 +37,32 @@ export default async function ProfilePage({ params }: PageProps) {
 
   const { count: postCount } = await supabase
     .from("posts")
-    .select("*", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .eq("author_id", profile.id)
     .eq("status", "published");
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-8">
       <header className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-8">
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-700 dark:text-brand-300 text-2xl font-bold shrink-0">
             {(profile.display_name || profile.handle)[0].toUpperCase()}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-stone-900 dark:text-stone-50">
+              <h1 className="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-50">
                 {profile.display_name || profile.handle}
               </h1>
               {profile.is_verified && (
                 <BadgeCheck className="w-5 h-5 text-brand-600" />
               )}
-              {profile.role === "admin" && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                  Admin
-                </span>
-              )}
-              {profile.role === "moderator" && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                  Moderator
+              {profile.role !== "member" && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300">
+                  {profile.role}
                 </span>
               )}
             </div>
-            <p className="text-sm text-stone-500 mt-0.5">@{profile.handle}</p>
+            <p className="text-stone-500 text-sm mt-0.5">@{profile.handle}</p>
             {profile.bio && (
               <p className="mt-3 text-sm text-stone-600 dark:text-stone-300">
                 {profile.bio}
@@ -78,28 +74,32 @@ export default async function ProfilePage({ params }: PageProps) {
                 Joined {formatRelativeTime(profile.created_at)}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4" />
-                {postCount ?? 0} posts
-              </span>
-              <span className="font-medium text-stone-700 dark:text-stone-300">
+                <Flame className="w-4 h-4 text-orange-500" />
                 {profile.reputation} reputation
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4" />
+                {postCount || 0} posts
               </span>
             </div>
           </div>
         </div>
       </header>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-50">
-          Threads by {profile.display_name || profile.handle}
+      <section>
+        <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50 mb-4">
+          Recent discussions
         </h2>
-        {threads && threads.length > 0 ? (
-          threads.map((t) => <ThreadCard key={t.id} thread={t} />)
-        ) : (
-          <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 px-6 py-12 text-center text-sm text-stone-500">
-            No public threads yet.
-          </div>
-        )}
+        <div className="space-y-3">
+          {(threads || []).map((thread) => (
+            <ThreadCard key={thread.id} thread={thread} />
+          ))}
+          {(!threads || threads.length === 0) && (
+            <p className="text-sm text-stone-500 text-center py-10">
+              No public discussions yet.
+            </p>
+          )}
+        </div>
       </section>
     </div>
   );

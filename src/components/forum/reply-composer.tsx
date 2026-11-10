@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Send, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { RichTextEditor } from "./rich-text-editor";
 
 interface ReplyComposerProps {
   threadId: string;
@@ -12,6 +13,15 @@ interface ReplyComposerProps {
   isLocked?: boolean;
   placeholder?: string;
   onSuccess?: () => void;
+}
+
+function isEmptyHtml(html: string) {
+  const text = html
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+  return !text;
 }
 
 export function ReplyComposer({
@@ -35,29 +45,24 @@ export function ReplyComposer({
     });
   }, [supabase]);
 
-  const handleFocus = async () => {
+  const ensureAuth = async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
       setShowAuth(true);
-    } else {
-      setIsAuthenticated(true);
+      return null;
     }
+    setIsAuthenticated(true);
+    return user;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!body.trim() || loading) return;
+    if (isEmptyHtml(body) || loading) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setShowAuth(true);
-      return;
-    }
+    const user = await ensureAuth();
+    if (!user) return;
 
     setLoading(true);
     setError(null);
@@ -95,37 +100,35 @@ export function ReplyComposer({
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/30 focus-within:border-brand-500 transition-shadow">
-          <textarea
+      <form onSubmit={handleSubmit} className="relative space-y-2">
+        <div onFocusCapture={() => ensureAuth()}>
+          <RichTextEditor
             value={body}
-            onChange={(e) => setBody(e.target.value)}
-            onFocus={handleFocus}
+            onChange={setBody}
             placeholder={placeholder}
-            rows={3}
-            className="w-full resize-none bg-transparent px-4 py-3 text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none"
+            minHeight="100px"
             disabled={loading}
           />
-          <div className="flex items-center justify-between px-3 py-2 border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
-            <p className="text-xs text-stone-400">
-              Be respectful. Follow community guidelines.
-            </p>
-            <button
-              type="submit"
-              disabled={!body.trim() || loading}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
-            >
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Send className="w-3.5 h-3.5" />
-              )}
-              Reply
-            </button>
-          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-stone-400">
+            Be respectful. Follow community guidelines.
+          </p>
+          <button
+            type="submit"
+            disabled={isEmptyHtml(body) || loading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+          >
+            {loading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
+            Reply
+          </button>
         </div>
         {error && (
-          <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>
+          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
         )}
       </form>
 
