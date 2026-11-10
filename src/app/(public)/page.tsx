@@ -63,7 +63,7 @@ export default async function HomePage() {
           </h1>
           <p className="mt-4 text-brand-100 text-lg leading-relaxed">
             Join conversations that matter — from Siasa to Tech, relationships to
-            fact-checking. Read freely. 
+            fact-checking. Read freely. Participate with Google.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

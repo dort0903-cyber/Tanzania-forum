@@ -185,7 +185,13 @@ export function AuthButton() {
                 <User className="w-4 h-4" /> Profile
               </Link>
             )}
-           
+            <Link
+              href="/settings"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-800"
+            >
+              <Settings className="w-4 h-4" /> Settings
+            </Link>
             {profile?.role === "admin" && (
               <Link
                 href="/admin"
