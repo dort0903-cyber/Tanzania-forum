@@ -52,7 +52,13 @@ export function ThreadCard({ thread }: ThreadCardProps) {
 
           <div className="mt-2 flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
             <span className="flex items-center gap-1">
-              {thread.author?.display_name || thread.author?.handle || "Anonymous"}
+              {thread.author?.handle ? (
+                <span className="hover:text-brand-600">
+                  {thread.author?.display_name || thread.author?.handle}
+                </span>
+              ) : (
+                "Anonymous"
+              )}
               {thread.author?.is_verified && (
                 <BadgeCheck className="w-3.5 h-3.5 text-brand-600" />
               )}

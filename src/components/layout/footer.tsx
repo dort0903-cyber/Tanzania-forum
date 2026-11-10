@@ -30,8 +30,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/c/jamiicheck" className="hover:text-brand-600 transition-colors">
-                  JamiiCheck
+                <Link href="/c/tzcheck" className="hover:text-brand-600 transition-colors">
+                  TzCheck
                 </Link>
               </li>
               <li>

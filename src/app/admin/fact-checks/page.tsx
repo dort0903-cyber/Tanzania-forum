@@ -20,7 +20,7 @@ export default async function AdminFactChecksPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">
-          JamiiCheck management
+          TzCheck management
         </h1>
         <p className="text-sm text-stone-500 mt-1">
           Create and publish fact-checks.

@@ -73,11 +73,11 @@ export default async function HomePage() {
               Explore discussions
             </Link>
             <Link
-              href="/c/jamiicheck"
+              href="/c/tzcheck"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-800/40 text-white font-medium rounded-xl border border-white/20 hover:bg-brand-800/60 transition-colors"
             >
               <ShieldCheck className="w-4 h-4" />
-              JamiiCheck
+              TzCheck
             </Link>
           </div>
         </div>
@@ -189,15 +189,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* JamiiCheck */}
+      {/* TzCheck */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50 flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-green-600" />
-            JamiiCheck
+            TzCheck
           </h2>
           <Link
-            href="/c/jamiicheck"
+            href="/c/tzcheck"
             className="text-sm font-medium text-brand-600 hover:text-brand-700"
           >
             All fact-checks
@@ -231,7 +231,7 @@ export default async function HomePage() {
               <EmptyState
                 icon={ShieldCheck}
                 title="No fact-checks published yet"
-                description="JamiiCheck will appear here once fact-checkers publish claims."
+                description="TzCheck will appear here once fact-checkers publish claims."
               />
             </div>
           )}

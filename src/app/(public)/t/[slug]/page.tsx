@@ -15,6 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 import Link from "next/link";
+import { ThreadActions } from "@/components/forum/thread-actions";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -126,18 +127,7 @@ export default async function ThreadPage({ params }: PageProps) {
             </span>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 pt-1">
-            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors">
-              <Share2 className="w-3.5 h-3.5" /> Share
-            </button>
-            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors">
-              <Bookmark className="w-3.5 h-3.5" /> Bookmark
-            </button>
-            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 rounded-lg transition-colors">
-              <Flag className="w-3.5 h-3.5" /> Report
-            </button>
-          </div>
+          <ThreadActions threadId={thread.id} title={thread.title} slug={thread.slug} />
         </header>
 
         {/* AI Summary */}

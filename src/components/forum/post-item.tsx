@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { formatRelativeTime } from "@/lib/utils";
-import { BadgeCheck, MessageSquare, MoreHorizontal, Flag, Quote } from "lucide-react";
+import { BadgeCheck, MessageSquare, Flag, Quote } from "lucide-react";
 import type { Post } from "@/types/database";
 import { ReplyComposer } from "./reply-composer";
+import { ReactionBar } from "./reaction-bar";
 
 interface PostItemProps {
   post: Post & {
@@ -24,7 +25,13 @@ export function PostItem({ post, threadId, depth = 0 }: PostItemProps) {
   const [showReply, setShowReply] = useState(false);
 
   return (
-    <div className={`${depth > 0 ? "ml-4 sm:ml-8 border-l-2 border-stone-200 dark:border-stone-800 pl-4" : ""}`}>
+    <div
+      className={`${
+        depth > 0
+          ? "ml-4 sm:ml-8 border-l-2 border-stone-200 dark:border-stone-800 pl-4"
+          : ""
+      }`}
+    >
       <article className="py-4">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-700 dark:text-brand-300 text-sm font-semibold shrink-0">
@@ -50,7 +57,8 @@ export function PostItem({ post, threadId, depth = 0 }: PostItemProps) {
               {post.body}
             </div>
 
-            <div className="mt-3 flex items-center gap-1">
+            <div className="mt-3 flex flex-wrap items-center gap-1">
+              <ReactionBar postId={post.id} />
               <button
                 onClick={() => setShowReply(!showReply)}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40 rounded-lg transition-colors"
@@ -81,8 +89,6 @@ export function PostItem({ post, threadId, depth = 0 }: PostItemProps) {
           </div>
         </div>
       </article>
-
-      {/* Nested replies would be rendered by parent if we fetch tree */}
     </div>
   );
 }

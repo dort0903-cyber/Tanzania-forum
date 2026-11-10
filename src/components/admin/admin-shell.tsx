@@ -24,7 +24,7 @@ const NAV = [
   { href: "/admin/logs", label: "Audit Logs", icon: ScrollText },
   { href: "/admin/ai", label: "AI / Groq", icon: Sparkles },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
-  { href: "/admin/fact-checks", label: "JamiiCheck", icon: ShieldCheck },
+  { href: "/admin/fact-checks", label: "TzCheck", icon: ShieldCheck },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

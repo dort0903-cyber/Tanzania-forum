@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "Tanzania",
     "forum",
     "discussion",
-    "JamiiCheck",
+    "TzCheck",
     "Siasa",
     "community",
   ],

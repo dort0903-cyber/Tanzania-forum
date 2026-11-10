@@ -1,5 +1,22 @@
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/\|.*/g, "")
+    .replace(/^\s*>\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function generateThreadSummary(
   title: string,
   posts: { body: string; author?: string }[],
@@ -20,8 +37,8 @@ export async function generateThreadSummary(
 
   const systemPrompt =
     language === "sw"
-      ? `Wewe ni msaidizi wa muhtasari wa majadiliano. Andika muhtasari mfupi (sekunde 30 kusoma) wa mjadala huu kwa Kiswahili. Lenga pointi kuu, maoni tofauti, na hitimisho. Usiongeze maoni yako mwenyewe. Tumia lugha rahisi na wazi.`
-      : `You are a discussion summarizer. Write a concise 30-second-read summary of this forum thread in English. Focus on key points, differing opinions, and any conclusions. Do not add your own opinions. Use clear, neutral language.`;
+      ? `Wewe ni msaidizi wa muhtasari wa majadiliano. Andika muhtasari mfupi (sekunde 30 kusoma) wa mjadala huu kwa Kiswahili. Lenga pointi kuu, maoni tofauti, na hitimisho. Usiongeze maoni yako mwenyewe. Tumia lugha rahisi na wazi. Usitumie alama za markdown kama # * ** au jedwali.`
+      : `You are a discussion summarizer. Write a concise 30-second-read summary of this forum thread in English. Focus on key points, differing opinions, and any conclusions. Do not add your own opinions. Use clear, neutral language. Never use markdown symbols like # * ** or tables.`;
 
   const userPrompt = `Thread title: ${title}\n\nPosts:\n${postsText}`;
 
@@ -50,7 +67,8 @@ export async function generateThreadSummary(
     }
 
     const data = await res.json();
-    return data.choices?.[0]?.message?.content?.trim() || null;
+    const raw = data.choices?.[0]?.message?.content?.trim() || null;
+    return raw ? stripMarkdown(raw) : null;
   } catch (e) {
     console.error("Groq request failed:", e);
     return null;

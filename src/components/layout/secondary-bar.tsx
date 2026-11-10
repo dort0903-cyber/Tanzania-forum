@@ -35,7 +35,7 @@ export function SecondaryBar() {
           <div className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 min-w-0 overflow-hidden">
             <Activity className="w-4 h-4 shrink-0 text-brand-600" />
             <span className="truncate">
-              Latest: New discussions in Siasa · Tech & Gadgets · JamiiCheck
+              Latest: New discussions in Siasa · Tech & Gadgets · TzCheck
             </span>
           </div>
           <button
