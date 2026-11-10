@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * Increments view_count once per browser session for a thread.
- * Does NOT call router.refresh() — avoids layout shake / secondary bar reload.
+ * Increments view_count once per browser session.
+ * Never refreshes the page — prevents sticky-bar shake.
  */
 export function ViewCounter({
   threadId,
@@ -25,14 +25,13 @@ export function ViewCounter({
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, "1");
     } catch {
-      // sessionStorage unavailable — still try once
+      // continue once
     }
 
     const supabase = createClient();
-    // Fire-and-forget; never refresh the page
     void supabase
       .from("threads")
-      .update({ view_count: initialCount + 1 })
+      .update({ view_count: (initialCount || 0) + 1 })
       .eq("id", threadId);
   }, [threadId, initialCount]);
 

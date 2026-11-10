@@ -1,100 +1,102 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { AuthModal } from "@/components/auth/auth-modal";
 import { Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AuthModal } from "@/components/auth/auth-modal";
 
-interface ReactionBarProps {
-  postId?: string;
-  threadId?: string;
-}
-
-export function ReactionBar({ postId, threadId }: ReactionBarProps) {
-  const [loves, setLoves] = useState(0);
-  const [myLove, setMyLove] = useState(false);
+export function ReactionBar({ postId }: { postId: string }) {
+  const [count, setCount] = useState(0);
+  const [loved, setLoved] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const supabase = createClient();
+  const [busy, setBusy] = useState(false);
+  const loaded = useRef(false);
 
   useEffect(() => {
-    const load = async () => {
-      if (!postId && !threadId) return;
+    if (loaded.current) return;
+    loaded.current = true;
 
-      let countQ = supabase
+    const supabase = createClient();
+
+    const load = async () => {
+      const { count: total } = await supabase
         .from("reactions")
-        .select("*", { count: "exact", head: true })
-        .eq("type", "like");
-      if (postId) countQ = countQ.eq("post_id", postId);
-      else countQ = countQ.eq("thread_id", threadId!);
-      const { count } = await countQ;
-      setLoves(count ?? 0);
+        .select("id", { count: "exact", head: true })
+        .eq("post_id", postId)
+        .eq("type", "love");
+
+      setCount(total || 0);
 
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      let mineQ = supabase
+      const { data } = await supabase
         .from("reactions")
         .select("id")
+        .eq("post_id", postId)
         .eq("user_id", user.id)
-        .eq("type", "like");
-      if (postId) mineQ = mineQ.eq("post_id", postId);
-      else mineQ = mineQ.eq("thread_id", threadId!);
-      const { data } = await mineQ.maybeSingle();
-      setMyLove(!!data);
+        .eq("type", "love")
+        .maybeSingle();
+
+      setLoved(!!data);
     };
-    load();
-  }, [postId, threadId, supabase]);
+
+    void load();
+  }, [postId]);
 
   const toggle = async () => {
+    if (busy) return;
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
     if (!user) {
       setShowAuth(true);
       return;
     }
 
-    if (myLove) {
-      let q = supabase
-        .from("reactions")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("type", "like");
-      if (postId) q = q.eq("post_id", postId);
-      else q = q.eq("thread_id", threadId!);
-      await q;
-      setMyLove(false);
-      setLoves((c) => Math.max(0, c - 1));
-    } else {
-      const row: Record<string, string> = {
-        user_id: user.id,
-        type: "like",
-      };
-      if (postId) row.post_id = postId;
-      if (threadId) row.thread_id = threadId;
-      await supabase.from("reactions").insert(row);
-      setMyLove(true);
-      setLoves((c) => c + 1);
+    setBusy(true);
+    try {
+      if (loved) {
+        await supabase
+          .from("reactions")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id)
+          .eq("type", "love");
+        setLoved(false);
+        setCount((c) => Math.max(0, c - 1));
+      } else {
+        await supabase.from("reactions").insert({
+          post_id: postId,
+          user_id: user.id,
+          type: "love",
+        });
+        setLoved(true);
+        setCount((c) => c + 1);
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
     <>
       <button
+        type="button"
         onClick={toggle}
-        className={cn(
-          "inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors",
-          myLove
-            ? "text-rose-600 bg-rose-50 dark:bg-rose-950/40"
+        disabled={busy}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${
+          loved
+            ? "text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400"
             : "text-stone-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-        )}
-        aria-label="Love"
+        }`}
       >
-        <Heart className={cn("w-3.5 h-3.5", myLove && "fill-current")} />
-        {loves > 0 && <span>{loves}</span>}
+        <Heart className={`w-3.5 h-3.5 ${loved ? "fill-current" : ""}`} />
+        {count > 0 ? count : ""}
       </button>
       <AuthModal
         open={showAuth}

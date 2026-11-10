@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 
@@ -30,6 +31,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY) as AppLanguage | null;
       if (saved === "en" || saved === "sw") {
         setLangState(saved);
+        document.documentElement.lang = saved === "sw" ? "sw" : "en";
       }
     } catch {
       // ignore
@@ -37,7 +39,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
-  const setLang = (next: AppLanguage) => {
+  const setLang = useCallback((next: AppLanguage) => {
     setLangState(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
@@ -47,25 +49,37 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (typeof document !== "undefined") {
       document.documentElement.lang = next === "sw" ? "sw" : "en";
     }
+  }, []);
+
+  const toggleLang = useCallback(() => {
+    setLangState((prev) => {
+      const next = prev === "en" ? "sw" : "en";
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // ignore
+      }
+      if (typeof document !== "undefined") {
+        document.documentElement.lang = next === "sw" ? "sw" : "en";
+      }
+      return next;
+    });
+  }, []);
+
+  const t = useCallback(
+    (en: string, sw: string) => (lang === "sw" ? sw : en),
+    [lang]
+  );
+
+  const value: LanguageContextValue = {
+    lang: ready ? lang : "en",
+    setLang,
+    toggleLang,
+    t,
   };
 
-  const toggleLang = () => setLang(lang === "en" ? "sw" : "en");
-
-  const t = (en: string, sw: string) => (lang === "sw" ? sw : en);
-
-  // Avoid hydration mismatch flash
-  if (!ready) {
-    return (
-      <LanguageContext.Provider
-        value={{ lang: "en", setLang, toggleLang, t: (en) => en }}
-      >
-        {children}
-      </LanguageContext.Provider>
-    );
-  }
-
   return (
-    <LanguageContext.Provider value={{ lang, setLang, toggleLang, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

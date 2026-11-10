@@ -6,6 +6,7 @@ import { BadgeCheck, MessageSquare, Flag, Quote } from "lucide-react";
 import type { Post } from "@/types/database";
 import { ReplyComposer } from "./reply-composer";
 import { ReactionBar } from "./reaction-bar";
+import { PostContent } from "./post-content";
 
 interface PostItemProps {
   post: Post & {
@@ -53,24 +54,29 @@ export function PostItem({ post, threadId, depth = 0 }: PostItemProps) {
               </time>
             </div>
 
-            <div className="mt-2 text-sm text-stone-800 dark:text-stone-200 leading-relaxed whitespace-pre-wrap">
-              {post.body}
-            </div>
+            <PostContent html={post.body} />
 
             <div className="mt-3 flex flex-wrap items-center gap-1">
               <ReactionBar postId={post.id} />
               <button
+                type="button"
                 onClick={() => setShowReply(!showReply)}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/40 rounded-lg transition-colors"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 Reply
               </button>
-              <button className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              >
                 <Quote className="w-3.5 h-3.5" />
                 Quote
               </button>
-              <button className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-stone-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+              >
                 <Flag className="w-3.5 h-3.5" />
                 Report
               </button>
