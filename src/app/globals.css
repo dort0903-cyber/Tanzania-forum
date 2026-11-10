@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 98%;
+    --foreground: 24 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+    --primary: 173 80% 30%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 40 10% 94%;
+    --muted-foreground: 25 5% 45%;
+    --accent: 40 10% 94%;
+    --accent-foreground: 24 10% 10%;
+    --border: 30 10% 90%;
+    --ring: 173 80% 30%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 24 10% 6%;
+    --foreground: 40 20% 96%;
+    --card: 24 10% 9%;
+    --card-foreground: 40 20% 96%;
+    --primary: 173 70% 40%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 24 8% 14%;
+    --muted-foreground: 30 8% 60%;
+    --accent: 24 8% 14%;
+    --accent-foreground: 40 20% 96%;
+    --border: 24 8% 18%;
+    --ring: 173 70% 40%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-stone-900/70 backdrop-blur-xl border border-white/20 dark:border-stone-700/50;
+  }
+
+  .glass-strong {
+    @apply bg-white/85 dark:bg-stone-900/85 backdrop-blur-2xl border border-white/30 dark:border-stone-700/60;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+  .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  .bg-card {
+    background-color: hsl(var(--card));
+  }
+  .text-card-foreground {
+    color: hsl(var(--card-foreground));
+  }
+  .bg-primary {
+    background-color: hsl(var(--primary));
+  }
+  .text-primary-foreground {
+    color: hsl(var(--primary-foreground));
+  }
+  .bg-muted {
+    background-color: hsl(var(--muted));
+  }
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground));
+  }
+  .bg-accent {
+    background-color: hsl(var(--accent));
+  }
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #44403c;
+}
