@@ -6,20 +6,62 @@ export const maxDuration = 60;
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-const TOPICS = [
-  "bei ya chakula na maisha ya kila siku Tanzania",
-  "elimu na shule za serikali",
-  "ajira kwa vijana",
-  "kilimo na soko la mazao",
-  "usafiri wa umma Dar es Salaam",
-  "teknolojia na simu mahiri",
-  "afya ya jamii na hospitali",
-  "mazingira na mabadiliko ya tabianchi",
-  "siasa za ndani bila chuki",
-  "biashara ndogo na ujasiriamali",
-  "utamaduni na lugha ya Kiswahili",
-  "mpira wa miguu na michezo",
-];
+/** Topics locked to real category slugs — never random */
+const CATEGORY_TOPICS: Record<
+  string,
+  { name: string; topics: string[] }
+> = {
+  siasa: {
+    name: "Siasa",
+    topics: [
+      "uchaguzi na ushiriki wa wananchi katika serikali za mitaa",
+      "uwazi wa bajeti ya serikali na matumizi ya fedha za umma",
+      "haki za raia na uhuru wa kujieleza Tanzania",
+      "mahusiano ya Tanzania na nchi jirani",
+      "jinsi vijana wanavyoweza kushiriki siasa bila chuki",
+    ],
+  },
+  "uhusiano-mapenzi": {
+    name: "Uhusiano na Mapenzi",
+    topics: [
+      "mahusiano ya ndoa na heshima kati ya wenzi",
+      "changamoto za mapenzi katika enzi ya mitandao ya kijamii",
+      "familia na malezi ya watoto katika jamii ya kisasa",
+      "urafiki wa kweli kati ya vijana wa kiume na kike",
+      "jinsi ya kujenga uaminifu katika mahusiano",
+    ],
+  },
+  "uchumi-biashara": {
+    name: "Uchumi na Biashara",
+    topics: [
+      "biashara ndogo ndogo na ujasiriamali wa vijana Tanzania",
+      "bei ya chakula na gharama za maisha mjini",
+      "kilimo kama biashara na soko la mazao",
+      "mikopo ya benki na SACCOS kwa wafanyabiashara wadogo",
+      "fursa za biashara mtandaoni na mauzo kupitia simu",
+    ],
+  },
+  "tech-gadgets": {
+    name: "Tech & Gadgets",
+    topics: [
+      "simu mahiri na matumizi yake kwa elimu na kazi",
+      "usalama wa mtandao na ulinzi wa taarifa binafsi",
+      "mitandao ya kijamii na athari zake kwa vijana",
+      "malipo ya kielektroniki kama M-Pesa na manufaa yake",
+      "teknolojia katika kilimo na biashara ndogo",
+    ],
+  },
+  tzcheck: {
+    name: "TzCheck",
+    topics: [
+      "jinsi ya kutambua habari bandia mitandaoni",
+      "umuhimu wa kuthibitisha vyanzo vya taarifa kabla ya kushiriki",
+      "uvumi kuhusu afya na dawa usiotegemewa",
+      "matangazo ya uongo kwenye WhatsApp na Facebook",
+      "jukumu la wananchi katika kupambana na upotoshaji wa ukweli",
+    ],
+  },
+};
 
 function stripMarkdown(text: string): string {
   return text
@@ -52,7 +94,8 @@ function slugify(text: string): string {
 }
 
 async function generateSwahiliPost(
-  topic: string
+  topic: string,
+  categoryName: string
 ): Promise<{ title: string; body: string } | null> {
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
@@ -73,16 +116,26 @@ async function generateSwahiliPost(
         messages: [
           {
             role: "system",
-            content:
-              "Wewe ni mwanajamii wa jukwaa la Tanzania. Andika mjadala mfupi kwa Kiswahili sanifu, rahisi, na wa heshima. TOA JIBU kwa muundo huu tu (bila markdown, bila #, bila *, bila jedwali):\nKichwa: ...\nMwili: ...\nMwili uwe aya 2 au 3 tu. Usitumie alama za markdown kabisa.",
+            content: `Wewe ni mwanajamii wa kawaida wa Tanzania unayeandika kwenye jukwaa la majadiliano.
+Andika mjadala kwa Kiswahili sanifu, rahisi, na wa heshima.
+MADA LAZIMA ihusiane na kategoria: ${categoryName} pekee. Usizungumzie mambo ya kategoria nyingine.
+Andika kama mtu wa kweli anayetoa maoni, kuuliza, au kushiriki uzoefu — si kama gazeti.
+Urefu wa mwili: aya 3 hadi 5 (takriban maneno 180–320). Si mfupi sana, si mrefu mno.
+UsA JIBU kwa muundo huu TU (bila markdown, bila #, bila *, bila jedwali, bila orodha yenye alama):
+Kichwa: ...
+Mwili: ...
+Kichwa kiwe fupi na cha kuvutia (chini ya maneno 15).
+Mwili uwe aya kamili zinazogusa maisha ya Watanzania.`,
           },
           {
             role: "user",
-            content: `Andika mjadala mpya kuhusu: ${topic}`,
+            content: `Kategoria: ${categoryName}
+Mada: ${topic}
+Andika mjadala mpya unaofaa kategoria hii pekee.`,
           },
         ],
-        temperature: 0.85,
-        max_tokens: 500,
+        temperature: 0.8,
+        max_tokens: 900,
       }),
     });
 
@@ -109,7 +162,7 @@ async function generateSwahiliPost(
     }
 
     if (!title || !body) return null;
-    return { title: title.slice(0, 180), body: body.slice(0, 2000) };
+    return { title: title.slice(0, 180), body: body.slice(0, 3500) };
   } catch (e) {
     console.error("generateSwahiliPost failed", e);
     return null;
@@ -124,7 +177,6 @@ export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   const isVercelCron = request.headers.get("x-vercel-cron") === "1";
 
-  // Allow: Vercel cron, matching CRON_SECRET, or force=1 when no secret is set
   if (cronSecret) {
     const ok =
       isVercelCron ||
@@ -136,7 +188,6 @@ export async function GET(request: Request) {
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Prefer service role so inserts bypass RLS
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -171,7 +222,7 @@ export async function GET(request: Request) {
 
   const { data: categories, error: catErr } = await supabase
     .from("categories")
-    .select("id, slug")
+    .select("id, slug, name_en")
     .eq("is_active", true);
 
   if (catErr || !categories?.length) {
@@ -181,7 +232,8 @@ export async function GET(request: Request) {
     );
   }
 
-  // Skip if already posted 5+ today (unless force=1)
+  const catBySlug = new Map(categories.map((c) => [c.slug, c]));
+
   if (!force) {
     const start = new Date();
     start.setUTCHours(0, 0, 0, 0);
@@ -201,19 +253,44 @@ export async function GET(request: Request) {
     }
   }
 
-  const shuffled = [...TOPICS].sort(() => Math.random() - 0.5).slice(0, 5);
-  const created: { slug: string; title: string }[] = [];
+  // Pick 5 category-topic pairs: prefer different categories
+  const availableSlugs = Object.keys(CATEGORY_TOPICS).filter((s) =>
+    catBySlug.has(s)
+  );
+  if (!availableSlugs.length) {
+    return NextResponse.json(
+      { error: "No matching category slugs in database" },
+      { status: 400 }
+    );
+  }
+
+  const picks: { slug: string; topic: string; name: string }[] = [];
+  const shuffledCats = [...availableSlugs].sort(() => Math.random() - 0.5);
+
+  for (let i = 0; i < 5; i++) {
+    const slug = shuffledCats[i % shuffledCats.length];
+    const cfg = CATEGORY_TOPICS[slug];
+    const topic = cfg.topics[Math.floor(Math.random() * cfg.topics.length)];
+    picks.push({ slug, topic, name: cfg.name });
+  }
+
+  const created: { slug: string; title: string; category: string }[] = [];
   const errors: string[] = [];
 
-  for (const topic of shuffled) {
-    const generated = await generateSwahiliPost(topic);
-    if (!generated) {
-      errors.push(`Failed to generate for: ${topic}`);
+  for (const pick of picks) {
+    const cat = catBySlug.get(pick.slug);
+    if (!cat) {
+      errors.push(`Category not found: ${pick.slug}`);
       continue;
     }
 
-    const cat = categories[Math.floor(Math.random() * categories.length)];
-    const slug =
+    const generated = await generateSwahiliPost(pick.topic, pick.name);
+    if (!generated) {
+      errors.push(`Failed to generate for: ${pick.topic} (${pick.slug})`);
+      continue;
+    }
+
+    const threadSlug =
       slugify(generated.title) + "-" + Date.now().toString(36).slice(-5);
 
     const { data: thread, error: threadErr } = await supabase
@@ -222,7 +299,7 @@ export async function GET(request: Request) {
         category_id: cat.id,
         author_id: admin.id,
         title: generated.title,
-        slug,
+        slug: threadSlug,
         language: "sw",
         status: "published",
       })
@@ -247,7 +324,11 @@ export async function GET(request: Request) {
       continue;
     }
 
-    created.push({ slug: thread.slug, title: thread.title });
+    created.push({
+      slug: thread.slug,
+      title: thread.title,
+      category: pick.slug,
+    });
   }
 
   return NextResponse.json({
