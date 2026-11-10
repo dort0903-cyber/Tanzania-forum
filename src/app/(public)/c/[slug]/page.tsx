@@ -60,7 +60,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   if (sort === "replies") {
     query = query.order("reply_count", { ascending: false });
-  }  else {
+  } else if (sort === "views") {
+    query = query.order("view_count", { ascending: false });
+  } else {
     query = query.order("last_activity_at", { ascending: false });
   }
 
