@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Send, Loader2 } from "lucide-react";
@@ -29,12 +29,11 @@ export function ReplyComposer({
   const router = useRouter();
   const supabase = createClient();
 
-  // Check auth on mount-ish
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsAuthenticated(!!user);
     });
-  });
+  }, [supabase]);
 
   const handleFocus = async () => {
     const {
@@ -69,7 +68,7 @@ export function ReplyComposer({
         author_id: user.id,
         parent_id: parentId,
         body: body.trim(),
-        language: "en", // could detect or use user pref
+        language: "en",
         status: "published",
       });
 
