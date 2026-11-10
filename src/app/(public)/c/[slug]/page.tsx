@@ -1,17 +1,34 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { ThreadCard } from "@/components/forum/thread-card";
 import { CategoryFollowButton } from "@/components/forum/category-follow-button";
-import { Plus } from "lucide-react";
+import Link from "next/link";
+import {
+  Landmark,
+  Heart,
+  TrendingUp,
+  Cpu,
+  ShieldCheck,
+  Users,
+  MessageSquare,
+  type LucideIcon,
+} from "lucide-react";
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
+const ICON_MAP: Record<string, LucideIcon> = {
+  Landmark,
+  Heart,
+  TrendingUp,
+  Cpu,
+  ShieldCheck,
+  Users,
+};
+
+interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ sort?: string; lang?: string }>;
-}) {
+}
+
+export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const { sort = "latest", lang } = await searchParams;
   const supabase = await createClient();
@@ -21,7 +38,7 @@ export default async function CategoryPage({
     .select("*")
     .eq("slug", slug)
     .eq("is_active", true)
-    .maybeSingle();
+    .single();
 
   if (!category) notFound();
 
@@ -30,7 +47,7 @@ export default async function CategoryPage({
     .select(
       `
       *,
-      category:categories(id, slug, name_en, name_sw, color),
+      category:categories(*),
       author:profiles(id, handle, display_name, avatar_url, is_verified, role)
     `
     )
@@ -49,55 +66,50 @@ export default async function CategoryPage({
     query = query.order("last_activity_at", { ascending: false });
   }
 
-  const { data: threads } = await query.limit(40);
+  const { data: threads } = await query.limit(30);
 
-  const filters = [
-    { key: "latest", label: "Latest" },
-    { key: "replies", label: "Most replied" },
-    { key: "views", label: "Most viewed" },
-  ];
+  const Icon = category.icon ? ICON_MAP[category.icon] || Users : Users;
 
   return (
     <div className="space-y-6">
+      {/* Category header */}
       <header className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div
-              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold mb-3"
-              style={{
-                backgroundColor: `${category.color}18`,
-                color: category.color,
-              }}
-            >
-              {category.name_en}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-50">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: `${category.color}18` }}
+          >
+            <Icon className="w-7 h-7" style={{ color: category.color }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">
               {category.name_en}
             </h1>
+            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+              {category.name_sw}
+            </p>
             {category.description_en && (
-              <p className="mt-2 text-stone-600 dark:text-stone-400 max-w-2xl">
+              <p className="mt-3 text-sm text-stone-600 dark:text-stone-300 leading-relaxed max-w-2xl">
                 {category.description_en}
               </p>
             )}
-            <p className="mt-3 text-sm text-stone-500">
-              {category.thread_count || 0} discussions
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <CategoryFollowButton categoryId={category.id} />
-            <Link
-              href={`/new?category=${category.slug}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              New discussion
-            </Link>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="text-xs font-medium text-stone-500">
+                {category.thread_count} threads
+              </span>
+              <CategoryFollowButton categoryId={category.id} />
+            </div>
           </div>
         </div>
       </header>
 
+      {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
-        {filters.map((f) => (
+        {[
+          { key: "latest", label: "Latest" },
+          { key: "replies", label: "Most replied" },
+          { key: "views", label: "Most viewed" },
+        ].map((f) => (
           <Link
             key={f.key}
             href={`/c/${slug}?sort=${f.key}${lang ? `&lang=${lang}` : ""}`}
@@ -111,43 +123,42 @@ export default async function CategoryPage({
           </Link>
         ))}
         <span className="w-px h-5 bg-stone-200 dark:bg-stone-700 mx-1" />
-        {["en", "sw"].map((l) => (
+        {[
+          { key: "", label: "All languages" },
+          { key: "en", label: "English" },
+          { key: "sw", label: "Kiswahili" },
+        ].map((f) => (
           <Link
-            key={l}
-            href={`/c/${slug}?sort=${sort}&lang=${l}`}
-            className={`px-3 py-1.5 text-xs font-semibold uppercase rounded-lg transition-colors ${
-              lang === l
-                ? "bg-stone-800 text-white dark:bg-stone-200 dark:text-stone-900"
-                : "bg-stone-100 dark:bg-stone-800 text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-700"
+            key={f.key || "all"}
+            href={`/c/${slug}?sort=${sort}${f.key ? `&lang=${f.key}` : ""}`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              (lang || "") === f.key
+                ? "bg-brand-600 text-white"
+                : "bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700"
             }`}
           >
-            {l}
+            {f.label}
           </Link>
         ))}
-        {lang && (
-          <Link
-            href={`/c/${slug}?sort=${sort}`}
-            className="px-3 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-800"
-          >
-            Clear lang
-          </Link>
-        )}
       </div>
 
+      {/* Thread list */}
       <div className="space-y-3">
-        {(threads || []).map((thread) => (
-          <ThreadCard key={thread.id} thread={thread} />
-        ))}
-        {(!threads || threads.length === 0) && (
-          <div className="rounded-xl border border-dashed border-stone-200 dark:border-stone-700 p-12 text-center">
-            <p className="text-stone-500 text-sm">
-              No discussions yet. Start the first one.
+        {threads && threads.length > 0 ? (
+          threads.map((thread) => <ThreadCard key={thread.id} thread={thread} />)
+        ) : (
+          <div className="rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/50 px-6 py-16 text-center">
+            <MessageSquare className="w-10 h-10 text-stone-300 dark:text-stone-600 mx-auto mb-3" />
+            <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300">
+              No threads yet
+            </h3>
+            <p className="mt-1 text-sm text-stone-500">
+              Be the first to start a discussion in this category.
             </p>
             <Link
               href={`/new?category=${category.slug}`}
-              className="inline-flex mt-4 items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl"
+              className="inline-flex mt-4 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl"
             >
-              <Plus className="w-4 h-4" />
               Start a discussion
             </Link>
           </div>

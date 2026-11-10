@@ -4,19 +4,9 @@ import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { RichTextEditor } from "@/components/forum/rich-text-editor";
 import { slugify } from "@/lib/utils";
 import { Loader2, Send } from "lucide-react";
 import type { Category } from "@/types/database";
-
-function isEmptyHtml(html: string) {
-  const text = html
-    .replace(/<br\s*\/?>/gi, "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/<[^>]+>/g, "")
-    .trim();
-  return !text;
-}
 
 function NewThreadForm() {
   const router = useRouter();
@@ -62,7 +52,7 @@ function NewThreadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || isEmptyHtml(body) || !categoryId || loading) return;
+    if (!title.trim() || !body.trim() || !categoryId || loading) return;
 
     const {
       data: { user },
@@ -193,12 +183,13 @@ function NewThreadForm() {
             <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
               Your post
             </label>
-            <RichTextEditor
+            <textarea
               value={body}
-              onChange={setBody}
+              onChange={(e) => setBody(e.target.value)}
+              required
+              rows={8}
               placeholder="Share your thoughts, question, or idea…"
-              minHeight="180px"
-              disabled={loading}
+              className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 resize-y"
             />
           </div>
 
@@ -208,7 +199,7 @@ function NewThreadForm() {
 
           <button
             type="submit"
-            disabled={loading || !title.trim() || isEmptyHtml(body) || !categoryId}
+            disabled={loading || !title.trim() || !body.trim() || !categoryId}
             className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
           >
             {loading ? (
