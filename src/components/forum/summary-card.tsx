@@ -6,10 +6,16 @@ import { Sparkles, X } from "lucide-react";
 interface SummaryCardProps {
   summary: string;
   generatedAt?: string | null;
+  /** Open the panel immediately (e.g. right after generate) */
+  defaultOpen?: boolean;
 }
 
-export function SummaryCard({ summary, generatedAt }: SummaryCardProps) {
-  const [open, setOpen] = useState(false);
+export function SummaryCard({
+  summary,
+  generatedAt,
+  defaultOpen = false,
+}: SummaryCardProps) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className="relative inline-flex">

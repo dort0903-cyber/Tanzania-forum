@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Share2, Bookmark, Flag, Check } from "lucide-react";
@@ -15,9 +15,12 @@ export function ThreadActions({ threadId, title, slug }: ThreadActionsProps) {
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const supabase = createClient();
+  const checked = useRef(false);
 
   useEffect(() => {
+    if (checked.current) return;
+    checked.current = true;
+    const supabase = createClient();
     const check = async () => {
       const {
         data: { user },
@@ -31,25 +34,34 @@ export function ThreadActions({ threadId, title, slug }: ThreadActionsProps) {
         .maybeSingle();
       setBookmarked(!!data);
     };
-    check();
-  }, [threadId, supabase]);
+    void check();
+  }, [threadId]);
 
   const handleShare = async () => {
     const url = `${window.location.origin}/t/${slug}`;
+    // Title first, then link — one paragraph
+    const shareText = `${title} ${url}`;
+
     if (navigator.share) {
       try {
-        await navigator.share({ title, url });
+        await navigator.share({
+          title,
+          text: shareText,
+          url,
+        });
         return;
       } catch {
-        // fall through to clipboard
+        // user cancelled or unsupported — fall through to clipboard
       }
     }
-    await navigator.clipboard.writeText(url);
+
+    await navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleBookmark = async () => {
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -77,6 +89,7 @@ export function ThreadActions({ threadId, title, slug }: ThreadActionsProps) {
     <>
       <div className="flex items-center gap-2 pt-1">
         <button
+          type="button"
           onClick={handleShare}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors"
         >
@@ -91,6 +104,7 @@ export function ThreadActions({ threadId, title, slug }: ThreadActionsProps) {
           )}
         </button>
         <button
+          type="button"
           onClick={handleBookmark}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
             bookmarked
@@ -101,7 +115,10 @@ export function ThreadActions({ threadId, title, slug }: ThreadActionsProps) {
           <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? "fill-current" : ""}`} />
           {bookmarked ? "Saved" : "Bookmark"}
         </button>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 rounded-lg transition-colors">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 rounded-lg transition-colors"
+        >
           <Flag className="w-3.5 h-3.5" /> Report
         </button>
       </div>
