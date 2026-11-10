@@ -531,7 +531,7 @@ INSERT INTO public.categories (slug, name_en, name_sw, description_en, descripti
   ('uhusiano-mapenzi', 'Relationships & Love', 'Uhusiano & Mapenzi', 'Advice, stories, and discussions about relationships, dating, and family.', 'Ushauri, hadithi, na majadiliano kuhusu uhusiano, uchumba, na familia.', 'Heart', '#BE123C', 2),
   ('uchumi-biashara', 'Economy & Business', 'Uchumi na Biashara', 'Business ideas, economic trends, entrepreneurship, and finance in Tanzania.', 'Mawazo ya biashara, mwenendo wa kiuchumi, ujasiriamali, na fedha nchini Tanzania.', 'TrendingUp', '#B45309', 3),
   ('tech-gadgets', 'Tech & Gadgets', 'Teknolojia & Vifaa', 'Technology news, gadgets, software, AI, and digital life.', 'Habari za teknolojia, vifaa, programu, AI, na maisha ya kidijitali.', 'Cpu', '#1D4ED8', 4),
-  ('jamiicheck', 'JamiiCheck', 'JamiiCheck', 'Fact-checking claims circulating in Tanzania. Truth over rumors.', 'Ukaguzi wa ukweli wa madai yanayozunguka Tanzania. Ukweli juu ya uvumi.', 'ShieldCheck', '#15803D', 5),
+  ('tzcheck', 'TzCheck', 'TzCheck', 'Fact-checking claims circulating in Tanzania. Truth over rumors.', 'Ukaguzi wa ukweli wa madai yanayozunguka Tanzania. Ukweli juu ya uvumi.', 'ShieldCheck', '#15803D', 5),
   ('jamii', 'Community', 'Jamii', 'General community discussions, culture, events, and everyday life.', 'Majadiliano ya jumuiya, utamaduni, matukio, na maisha ya kila siku.', 'Users', '#7C3AED', 6);
 
 INSERT INTO public.site_settings (key, value) VALUES
